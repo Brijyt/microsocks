@@ -334,6 +334,14 @@ static int handshake(struct thread *t) {
 				break;
 			case SS_2_NEED_AUTH:
 				ret = check_credentials(buf, n);
+				if(ret != EC_SUCCESS && CONFIG_LOG) {
+					char clientname[256];
+					int af = SOCKADDR_UNION_AF(&t->client.addr);
+					void *ipdata = SOCKADDR_UNION_ADDRESS(&t->client.addr);
+					const char *client_ip = inet_ntop(af, ipdata, clientname, sizeof clientname);
+					if(!client_ip) client_ip = "<unknown>";
+					dolog("client[%d] authentication failed for %s\n", t->client.fd, client_ip);
+				}
 				send_auth_response(t->client.fd, 1, ret);
 				if(ret != EC_SUCCESS)
 					return -1;
